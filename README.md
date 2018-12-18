@@ -2,9 +2,15 @@
 
 ## The classic game in javascript
 
-![alt text](screenshot.png)
 
+## Controls:
 
+Space = flop
 
 ## Take flight at:
 https://ruben-krueger.github.io/floppy-bird.js/
+
+
+![alt text](screenshot.png)
+
+
