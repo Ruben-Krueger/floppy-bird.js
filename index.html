@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mine Sweeper</title>
+    <title>Floppy Bird</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" />
     <link rel="stylesheet" href="main.css"/>
@@ -23,6 +23,191 @@
 <script>
     const canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
+
+    var score = 0;
+
+    var bird;
+
+    // starting y of the bird
+    const STARTING_HEIGHT = 100;
+
+    const NUM_STARTING_PIPES = 4;
+
+    var pipes = [];
+
+    const MIN_HEIGHT = 40;
+    const MAX_HEIGHT = 200;
+
+    var frames = 0;
+    const PIPE_MOD = 20;
+    const GAME_SPEED = 60;
+
+    var gameOver = false;
+
+
+    function Bird(x, y) {
+
+        this.x = x;
+        this.y = y;
+        this.color = "#0095DD";
+        this.radius = 15;
+
+        this.gravity = 10;
+        this.verticalJump = 70;
+
+        this.render = function() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.closePath();
+
+        };
+
+
+
+        this.flop = function() {
+           if(this.y - this.verticalJump < 0) return;
+
+           this.y -= this.verticalJump;
+
+        };
+
+        this.update = function() {
+            this.y += this.gravity;
+        }
+
+
+    }
+
+    function Pipe(x, topHeight, bottomHeight) {
+
+        this.x = x;
+        this.topHeight = topHeight;
+        this.bottomHeight = bottomHeight;
+
+
+        this.color = "black";
+        this.width = 20;
+
+        this.speed = 5;
+
+        this.passed = false;
+
+
+        this.render = function() {
+
+            ctx.beginPath();
+
+            // bottom portion of pipe
+            ctx.rect(this.x, canvas.height - this.bottomHeight, this.width, this.bottomHeight);
+
+            // top portion of pipe
+            ctx.rect(this.x, 0, this.width, this.topHeight);
+
+            ctx.fillStyle = this.color;
+            ctx.fill();
+
+            ctx.closePath();
+
+        };
+
+
+        this.update = function() {
+            this.x -= this.speed;
+        }
+
+
+    }
+
+
+
+
+    function init() {
+        bird = new Bird(canvas.width/10, STARTING_HEIGHT);
+
+        document.addEventListener('keypress', function(){
+            if(event.code === "Space") bird.flop();
+        });
+
+
+
+    }
+
+
+    function getRandom(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function collision(pipe) {
+        return ((bird.x + bird.radius > pipe.x && bird.x < pipe.x + pipe.width) && (bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > canvas.height - pipe.bottomHeight));
+    }
+
+
+    function createPipes() {
+
+        if(frames % PIPE_MOD === 0) {
+
+            let topHeight = getRandom(MIN_HEIGHT, MAX_HEIGHT);
+            let bottomHeight = getRandom(MIN_HEIGHT, MAX_HEIGHT);
+
+            pipes.push(new Pipe(canvas.width, topHeight, bottomHeight));
+        }
+
+        for(let i = 0; i < pipes.length; i ++) {
+            pipes[i].render();
+            pipes[i].update();
+
+            // remove pipes once they go off the canvas
+            if(pipes[i].x + pipes[i].width < 0) pipes.splice(i, 1);
+
+            if((pipes[i].x - pipes[i].width < bird.x) && !pipes[i].passed){
+                score++;
+                pipes[i].passed = true;
+            }
+
+            if(collision(pipes[i])) {
+
+                // console.log(bird.x + bird.radius > pipe.x && bird.x < pipe.x + pipe.width) {
+                //     return bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > canvas.height - pipe.bottomHeight;
+
+
+                    gameOver = true;
+                console.log('ouch');
+
+            }
+
+        }
+
+
+    }
+
+
+
+
+
+    function draw() {
+
+        if(gameOver) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        bird.render();
+        bird.update();
+
+        createPipes();
+
+
+        document.getElementById('score').innerHTML = `Score: ${score}`;
+
+        frames ++;
+
+
+    }
+
+    init();
+    setInterval(draw, GAME_SPEED);
+
 
 
 </script>
